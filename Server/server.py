@@ -8,6 +8,8 @@ import motor
 import json
 import os
 
+from server_file import ServerFiles
+
 db_client = motor.MotorClient()
 
 setting = {
@@ -24,7 +26,11 @@ class JsonTools:
 
     @staticmethod
     def toDict(string):
-        return json.loads(string)
+	try:
+        	return json.loads(string)
+	except ValueError:
+		print string 
+	raise ValueError("can not be decode as json")
     @staticmethod
     def respondJson(res):
         return json.dumps({'des':'respond','res':res })
@@ -32,7 +38,7 @@ class JsonTools:
 class BaseWebSockerHandler(websocket.WebSocketHandler):
     connections = {}
     devices = {}
-    def prepar(self):
+    def prepare(self):
         self.db = self.settings['db']
         self.static_path = self.settings['static_path']
     def check_if_onlion(self,ip):
@@ -52,14 +58,21 @@ class BaseWebSockerHandler(websocket.WebSocketHandler):
             self.write_message(JsonTools.respondJson('ok'))
         else:
             self.write_message(JsonTools.respondJson('retry'))
+    def write_message(self,*args,**kargs):
+	print args
+	print kargs
+	super(BaseWebSockerHandler,self).write_message(*args,**kargs)		
 
     def open(self):
         BaseWebSockerHandler.connections[self.request.remote_ip] = 'unknow'
         print "WebSocket opened\n"
         print "static {}".format(self.static_path)
+
+	
    
     @tornado.web.asynchronous
     def on_message(self,message):
+	print "primary message {}".format(message)
         root_obj = JsonTools.toDict(message)
         if root_obj['des'] == "register":
             if root_obj['device']['type'] == 'device':
@@ -72,7 +85,20 @@ class BaseWebSockerHandler(websocket.WebSocketHandler):
         elif root_obj['des'] == "update_file":
             file_obj = JsonTools.toDict(message)
             save_file(file_obj)
-        
+        elif root_obj['des'] == "bash":
+            command = root_obj['command']
+            res = os.popen(command).read()
+            self.write_message(JsonTools.tojson({
+                    'des':'res',
+                    'content':res,
+                }))
+        elif root_obj['des'] == 'show_file':
+            files_handler = ServerFiles()
+            files = files_handler.get_all()
+            self.write_message(JsonTools.tojson({
+                    'des':'res',
+                    'content':files,
+                }))
         elif root_obj['des'] == 'send_file':
             target = root_obj['target']
             if not self.check_if_onlion(target):
@@ -84,6 +110,18 @@ class BaseWebSockerHandler(websocket.WebSocketHandler):
                     'url':os.path.join(self.static_path,root_obj['name']),
                 }))
             self.write_message(JsonTools.respondJson('ok'))
+        elif root_obj['des'] == 'command':
+            print (root_obj)
+            target = root_obj['target']
+            
+            if not self.check_if_onlion(target):
+                self.write_message(JsonTools.respondJson('no'))
+            connection = self.get_device(target)
+
+            connection.write_message(JsonTools.tojson(root_obj['command'])
+            
+            self.write_message(JsonTools.respondJson('ok'))
+
     def on_close(self):
         self.logout() 
     

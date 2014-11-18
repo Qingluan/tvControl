@@ -32,5 +32,5 @@ public class ARGUMENTS {
 
     // routing
     public static final String JSON_DOWNLOAD = "download";
-
+    public static final String SEND_MESSAGE = "send message";
 }

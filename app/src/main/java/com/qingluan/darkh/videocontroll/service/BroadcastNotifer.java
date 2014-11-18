@@ -76,16 +76,16 @@ public class BroadcastNotifer {
         intent.setAction(action);
         intent.putExtras(data_bundle);
         this.localcontext.sendBroadcast(intent);
-        Log.d(tag,"send intent to broadcast");
+        Log.d(tag,"send intent to broadcast from "+this.localcontext.toString());
         return true;
     }
 
     public boolean sendIntentService(Context context,String info){
         Log.d(tag,"starting send info");
-        Intent intent = new Intent(context,RecivedIntentService.class);
+        Intent intent = new Intent(context,TalkService.class);
         Bundle info_bundle = new Bundle();
-        info_bundle.putString(ARGUMENTS.SEND_INFO_KEY,info);
-        info_bundle.putInt(ARGUMENTS.SIGNAL_KEY,RecivedIntentService.SIGNAL_CONNECT);
+        info_bundle.putString(ARGUMENTS.SEND_MESSAGE,info);
+        info_bundle.putInt(ARGUMENTS.SIGNAL_KEY,TalkService.SEND_INFO);
         intent.putExtras(info_bundle);
         context.startService(intent);
         return  true;

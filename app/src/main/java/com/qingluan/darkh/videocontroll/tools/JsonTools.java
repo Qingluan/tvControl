@@ -30,14 +30,16 @@ public class JsonTools {
 
     public Object getData(String key){
         try{
-            return  this.json_obj.get(key);
+            Object obj =   this.json_obj.get(key);
+//            Log.d(tag,"obj :" + obj.toString());
+            return obj;
         }catch (NullPointerException e){
             Log.d(tag,"json is not init");
         }catch (JSONException e){
+            Log.d(tag,"can not be decode");
             e.printStackTrace();
-        }finally {
-            return null;
         }
+        return  null;
     }
     /*
         this area is about construct a json structure
@@ -81,7 +83,8 @@ public class JsonTools {
             e.printStackTrace();
         }
     }
-    public String getJsonString(){
+
+    public String toString(){
         return  this.json_obj.toString();
     }
 

@@ -50,16 +50,19 @@ public class NetworkHandler {
                 public void onOpen() {
                     Log.d(tag,"ok connected");
                     String respond_register = interact_handler.RegisterRespond(ARGUMENTS.DEVICE_ID);
+                    notifer.sendIntent(ARGUMENTS.INFO_ACTION,respond_register);
                     connect_client.sendTextMessage(respond_register);
-                    notifer.sendIntent(ARGUMENTS.GET_BROADCAST_ACTION,"ok");
+                    notifer.sendIntent(ARGUMENTS.GET_BROADCAST_ACTION,"ok  register is ok");
                 }
 
                 @Override
                 public void onTextMessage(String payload) {
-                    Log.d(tag,"get message");
+                    Log.d(tag,"get message" + payload);
                     JsonTools respond_json = new JsonTools(payload);
                     String destination = (String)respond_json.getData("des");
+                    Log.d(tag,destination);
                     if (destination.equals("respond")){
+                        Log.d(tag,"is this reach ?");
                         String res = (String)respond_json.getData("res");
                         if (res.equals("ok")){
                             notifer.sendIntent(ARGUMENTS.GET_BROADCAST_ACTION,"ok");
@@ -81,8 +84,7 @@ public class NetworkHandler {
                         context.startService(intent);
 
                     }
-                    notifer.sendIntent(ARGUMENTS.GET_BROADCAST_ACTION,payload);
-                    connect_client.sendTextMessage("i get");
+                    notifer.sendIntent(ARGUMENTS.GET_BROADCAST_ACTION,payload); // this is for test
 
                 }
 
@@ -157,5 +159,9 @@ public class NetworkHandler {
 
     public interface AsyncHttpListener{
         public void afterSave(String file_path);
+    }
+
+    public boolean isConnected(){
+        return this.connect_client.isConnected();
     }
 }
